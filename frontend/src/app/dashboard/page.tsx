@@ -63,112 +63,202 @@ export default function DashboardPage() {
     fetchData();
   }, []);
 
-  const densityColor = (d: string) => {
-    if (d === "Low") return "text-green-600 bg-green-100";
-    if (d === "Medium") return "text-yellow-600 bg-yellow-100";
-    return "text-red-600 bg-red-100";
+  const densityBadge = (d: string) => {
+    if (d === "Low") return "badge badge-low";
+    if (d === "Medium") return "badge badge-medium";
+    return "badge badge-high";
   };
 
   return (
     <ProtectedLayout>
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-500 mt-1">Real-time traffic monitoring overview</p>
+      <div className="space-y-6 md:space-y-8 max-w-[1400px] mx-auto">
+        {/* Page Header */}
+        <div className="animate-slide-up">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+            <div>
+              <p className="text-steel-500 text-xs font-semibold uppercase tracking-widest mb-1">Overview</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Dashboard</h1>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-steel-400">
+              <div className="pulse-dot bg-emerald-400" />
+              <span>Real-time monitoring</span>
+            </div>
+          </div>
         </div>
 
         {loading ? (
           <div className="flex justify-center py-20">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+            <div className="flex flex-col items-center gap-4">
+              <div className="spinner" />
+              <p className="text-steel-400 text-sm">Loading dashboard data...</p>
+            </div>
           </div>
         ) : (
           <>
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <StatCard title="Total Traffic Logs" value={summary?.totalLogs || 0} color="blue" />
-              <StatCard title="Total Violations" value={summary?.totalViolations || 0} color="red" />
-              <StatCard title="Active Junctions" value={summary?.totalJunctions || 0} color="green" />
+            {/* Bento Stats Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 animate-slide-up" style={{ animationDelay: '100ms' }}>
+              <StatCard
+                title="Total Traffic Logs"
+                value={summary?.totalLogs || 0}
+                color="blue"
+                subtitle="All monitored sessions"
+              />
+              <StatCard
+                title="Total Violations"
+                value={summary?.totalViolations || 0}
+                color="red"
+                subtitle="Red-light infractions"
+              />
+              <StatCard
+                title="Active Junctions"
+                value={summary?.totalJunctions || 0}
+                color="green"
+                subtitle="Currently monitored"
+              />
               <StatCard
                 title="High Density Events"
                 value={summary?.densityDistribution.High || 0}
                 color="yellow"
+                subtitle="Congestion alerts"
               />
             </div>
 
-            {/* Junction Status */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Junction Status</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {junctions.map((j) => (
-                  <div key={j.id} className="border rounded-lg p-4 space-y-2">
-                    <h3 className="font-semibold text-gray-900">{j.name}</h3>
-                    <p className="text-sm text-gray-500">{j.location}</p>
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${densityColor(j.latestDensity)}`}>
-                        {j.latestDensity}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        {j.latestTotal} vehicles
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      Green Time: <span className="font-medium text-gray-700">{j.latestGreenTime}s</span>
-                      {" | "}Violations: <span className="font-medium text-red-600">{j.violationCount}</span>
-                    </div>
+            {/* Junction Status - Bento Cards */}
+            <div className="animate-slide-up" style={{ animationDelay: '200ms' }}>
+              <div className="glass-card p-5 md:p-6">
+                <div className="flex items-center justify-between mb-5">
+                  <div>
+                    <h2 className="text-lg font-bold text-white">Junction Status</h2>
+                    <p className="text-steel-500 text-xs mt-0.5">Live monitoring across all intersections</p>
                   </div>
-                ))}
+                  <div className="hidden sm:flex items-center gap-3 text-xs text-steel-500">
+                    <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-400"></span>Low</span>
+                    <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-400"></span>Medium</span>
+                    <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-400"></span>High</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+                  {junctions.map((j, index) => (
+                    <div
+                      key={j.id}
+                      className="glass-card-light p-4 rounded-xl hover:bg-white/[0.08] transition-all group animate-fade-in"
+                      style={{ animationDelay: `${index * 80}ms` }}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <h3 className="font-semibold text-white text-sm">{j.name}</h3>
+                          <p className="text-xs text-steel-500 mt-0.5">{j.location}</p>
+                        </div>
+                        <span className={densityBadge(j.latestDensity)}>
+                          {j.latestDensity}
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-steel-400">Vehicles</span>
+                          <span className="font-semibold text-white">{j.latestTotal}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-steel-400">Green Time</span>
+                          <span className="font-medium text-emerald-400">{j.latestGreenTime}s</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-steel-400">Violations</span>
+                          <span className="font-medium text-red-400">{j.violationCount}</span>
+                        </div>
+                      </div>
+                      {/* Progress bar (density visualization) */}
+                      <div className="mt-3 h-1 bg-white/5 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-700 ${
+                            j.latestDensity === "Low"
+                              ? "bg-emerald-500 w-1/3"
+                              : j.latestDensity === "Medium"
+                              ? "bg-amber-500 w-2/3"
+                              : "bg-red-500 w-full"
+                          }`}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  {junctions.length === 0 && (
+                    <div className="col-span-full flex flex-col items-center justify-center py-12 text-steel-500">
+                      <svg className="w-12 h-12 mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                      <p className="text-sm">No junctions configured yet</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
             {/* Recent Traffic Logs */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Traffic Logs</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-gray-500">
-                      <th className="pb-3 pr-4">Junction</th>
-                      <th className="pb-3 pr-4">Cars</th>
-                      <th className="pb-3 pr-4">Bikes</th>
-                      <th className="pb-3 pr-4">Buses</th>
-                      <th className="pb-3 pr-4">Trucks</th>
-                      <th className="pb-3 pr-4">Total</th>
-                      <th className="pb-3 pr-4">Density</th>
-                      <th className="pb-3 pr-4">Green Time</th>
-                      <th className="pb-3">Timestamp</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {logs.map((log) => (
-                      <tr key={log.id} className="border-b last:border-0 hover:bg-gray-50">
-                        <td className="py-3 pr-4 font-medium text-gray-900">
-                          {log.junctions?.name || "—"}
-                        </td>
-                        <td className="py-3 pr-4 text-gray-700">{log.cars}</td>
-                        <td className="py-3 pr-4 text-gray-700">{log.bikes}</td>
-                        <td className="py-3 pr-4 text-gray-700">{log.buses}</td>
-                        <td className="py-3 pr-4 text-gray-700">{log.trucks}</td>
-                        <td className="py-3 pr-4 font-medium text-gray-900">{log.total}</td>
-                        <td className="py-3 pr-4">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${densityColor(log.density)}`}>
-                            {log.density}
-                          </span>
-                        </td>
-                        <td className="py-3 pr-4 text-gray-700">{log.green_time}s</td>
-                        <td className="py-3 text-gray-500">
-                          {new Date(log.timestamp).toLocaleString()}
-                        </td>
-                      </tr>
-                    ))}
-                    {logs.length === 0 && (
+            <div className="animate-slide-up" style={{ animationDelay: '300ms' }}>
+              <div className="glass-card p-5 md:p-6">
+                <div className="flex items-center justify-between mb-5">
+                  <div>
+                    <h2 className="text-lg font-bold text-white">Recent Traffic Logs</h2>
+                    <p className="text-steel-500 text-xs mt-0.5">Latest vehicle detection records</p>
+                  </div>
+                  <span className="text-xs font-medium text-steel-500 bg-white/5 px-3 py-1.5 rounded-lg">
+                    Last {logs.length} entries
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto -mx-5 md:-mx-6 px-5 md:px-6">
+                  <table className="table-glass">
+                    <thead>
                       <tr>
-                        <td colSpan={9} className="py-8 text-center text-gray-400">
-                          No traffic logs yet. Start the ML service to begin monitoring.
-                        </td>
+                        <th>Junction</th>
+                        <th className="hidden sm:table-cell">Cars</th>
+                        <th className="hidden sm:table-cell">Bikes</th>
+                        <th className="hidden md:table-cell">Buses</th>
+                        <th className="hidden md:table-cell">Trucks</th>
+                        <th>Total</th>
+                        <th>Density</th>
+                        <th className="hidden lg:table-cell">Green Time</th>
+                        <th className="hidden sm:table-cell">Timestamp</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {logs.map((log) => (
+                        <tr key={log.id}>
+                          <td className="font-medium text-white">
+                            {log.junctions?.name || "—"}
+                          </td>
+                          <td className="hidden sm:table-cell">{log.cars}</td>
+                          <td className="hidden sm:table-cell">{log.bikes}</td>
+                          <td className="hidden md:table-cell">{log.buses}</td>
+                          <td className="hidden md:table-cell">{log.trucks}</td>
+                          <td className="font-semibold text-white">{log.total}</td>
+                          <td>
+                            <span className={densityBadge(log.density)}>
+                              {log.density}
+                            </span>
+                          </td>
+                          <td className="hidden lg:table-cell text-emerald-400">{log.green_time}s</td>
+                          <td className="hidden sm:table-cell text-steel-500 text-xs">
+                            {new Date(log.timestamp).toLocaleString()}
+                          </td>
+                        </tr>
+                      ))}
+                      {logs.length === 0 && (
+                        <tr>
+                          <td colSpan={9} className="py-12 text-center text-steel-500">
+                            <div className="flex flex-col items-center gap-2">
+                              <svg className="w-10 h-10 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                              </svg>
+                              <p className="text-sm">No traffic logs yet</p>
+                              <p className="text-xs text-steel-600">Start the ML service to begin monitoring</p>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </>
